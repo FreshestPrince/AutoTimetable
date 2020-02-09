@@ -65,5 +65,5 @@ def Timetable():
                 time += 1
         day += 1
 
-    wb.save(Name + ".xls")
+    wb.save(Name + ".xls") # Save file as an excel sheet
 Timetable()
