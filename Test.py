@@ -59,6 +59,8 @@ def Timetable():
             elif Number == len(Array):
                 time == TimeLimitB
                 break
+            elif day == 6:
+                break
             else:
                 sheet1.write(time - TimeLimitA, day, Array[Number])
                 Number += 1
