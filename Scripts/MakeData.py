@@ -48,6 +48,7 @@ def lecturer_free(data, name, time):
         for key in item.keys():
             lst.append(key)
     no = lst.index(name)
+
     free = list(data[no].values())[0][time]
     if free == 1:
         return True
@@ -63,9 +64,13 @@ def class_free(data, time):
 
 
 def lecturer_available_time(Lecture_Hours, Lecturer_Expertise, Lecturer_Free, subject, time):
-    subject_index = list((Lecture_Hours[0].keys())).index(subject)
-    hours = (list(Lecture_Hours[0].values())[0][subject_index])
-    subject = list((Lecture_Hours[0].keys()))[0]
+    subject_list = []
+    for item in Lecture_Hours:
+        list_of_lists = (list(item.keys()))
+        for x in list_of_lists:
+            subject_list.append(x)
+    subject_index = subject_list.index(subject)
+    hours = list(Lecture_Hours[subject_index].values())[0][0]
     lst = []
     if hours > 0:
         for names in (lecturer_subject(Lecturer_Expertise, subject)):
