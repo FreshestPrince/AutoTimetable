@@ -8,7 +8,7 @@ def make_dict(workbook):
     wb = load_workbook(workbook, read_only=True)
     sheet = wb.worksheets[0]
     row_count = sheet.max_row
-    column_count = sheet.max_column-1
+    column_count = sheet.max_column - 1
     listfolders = []
     while rows <= row_count:
         while columns <= column_count:
@@ -62,6 +62,7 @@ def class_free(data, time):
     else:
         return False
 
+
 def time_normal(number):
     while 0 < number > 13:
         number -= 13
@@ -92,6 +93,7 @@ def time_normal(number):
     elif number == 13:
         return 21
 
+
 def time_translate(number):
     if number < 14:
         return ("Monday", time_normal(number))
@@ -106,6 +108,7 @@ def time_translate(number):
     else:
         print("Value is not within proper range")
         return 0
+
 
 def lecturer_available_time(Lecture_Hours, Lecturer_Expertise, Lecturer_Free, subject, time):
     subject_list = []
