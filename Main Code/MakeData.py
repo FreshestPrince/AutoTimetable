@@ -122,9 +122,47 @@ def lecturer_available_time(Lecture_Hours, Lecturer_Expertise, Lecturer_Free, su
     if hours > 0:
         for names in (lecturer_subject(Lecturer_Expertise, subject)):
             if lecturer_free(Lecturer_Free, names, time) == True:
-                print(names + "is available at this time.")
                 lst.append(names)
     if len(lst) == 0:
-        print("No lecturers available at this time.")
-        return ["No lecturers available at this time for this subject."]
+        return []
     return lst
+
+def check_free_classroom(data, time):
+    lst = []
+    free_lst = []
+    number = 1
+    for item in data:
+        for key in item.keys():
+            lst.append(key)
+    while number < len(lst):
+        classroom = lst[number]
+        classroom_index = lst.index(classroom)
+        if list(data[classroom_index].values())[0][time-1] == 1:
+            free_lst.append(classroom)
+        number += 1
+    if len(free_lst) > 0:
+        return free_lst
+    else:
+        return free_lst
+
+def find_classroom_and_lecturer(Lecture_Hours, Lecturer_Expertise, Lecturer_Free, Classroom_Free):
+    lecture = []
+    for value in Lecture_Hours:
+        time = list(value.values())[0][0]
+        subject = list(value.keys())[0]
+        while time > 0:
+            timeOfDay = 0
+            number_of_hours = list(Classroom_Free[0].values())[0]
+            while timeOfDay < len(number_of_hours):
+                free_classroom = check_free_classroom(Classroom_Free, timeOfDay)
+                free_lecturer = lecturer_available_time(Lecture_Hours, Lecturer_Expertise, Lecturer_Free, subject,
+                                                        timeOfDay)
+                if len(free_classroom) > 0 and len(free_lecturer) > 0:
+                    lecture.append({subject: [timeOfDay, free_lecturer, free_classroom]})
+                    timeOfDay += 1
+                    time -= 1
+                    if time == 0:
+                        break
+                else:
+                    timeOfDay += 1
+    return lecture
