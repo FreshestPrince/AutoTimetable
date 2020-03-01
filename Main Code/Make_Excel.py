@@ -1,6 +1,6 @@
 from MakeData import *
 
-Lecture_Hours = [{'Analogue Electronics': [30]}, {'Communications Networks 1': [30]}, {'Computer Architecture 1': [30]},
+Lecture_Hours = [{'Communications Networks 1': [30]}, {'Analogue Electronics': [30]}, {'Computer Architecture 1': [30]},
                  {'Digital Electronic Design': [30]}, {'Electrical Systems': [30]},
                  {'Intro to Elec Energy Systems 1': [30]}, {'Introduction to Control': [30]}, {'Mathematics 2': [30]},
                  {'Mathematics 3': [30]}, {'Programming 1': [30]}, {'Signals and Systems': [30]},
@@ -104,3 +104,6 @@ Classroom_Free = [{'Time': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 1
                       'Classroom C': [0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1,
                                       1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0,
                                       0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1]}]
+
+a = find_classroom_and_lecturer(Lecture_Hours, Lecturer_Expertise, Lecturer_Free, Classroom_Free)
+print(a[31])

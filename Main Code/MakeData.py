@@ -48,7 +48,6 @@ def lecturer_free(data, name, time):
         for key in item.keys():
             lst.append(key)
     no = lst.index(name)
-
     free = list(data[no].values())[0][time]
     if free == 1:
         return True
@@ -123,8 +122,6 @@ def lecturer_available_time(Lecture_Hours, Lecturer_Expertise, Lecturer_Free, su
         for names in (lecturer_subject(Lecturer_Expertise, subject)):
             if lecturer_free(Lecturer_Free, names, time) == True:
                 lst.append(names)
-    if len(lst) == 0:
-        return []
     return lst
 
 def check_free_classroom(data, time):
@@ -137,7 +134,7 @@ def check_free_classroom(data, time):
     while number < len(lst):
         classroom = lst[number]
         classroom_index = lst.index(classroom)
-        if list(data[classroom_index].values())[0][time-1] == 1:
+        if list(data[classroom_index].values())[0][time - 1] == 1:
             free_lst.append(classroom)
         number += 1
     if len(free_lst) > 0:
@@ -145,8 +142,24 @@ def check_free_classroom(data, time):
     else:
         return free_lst
 
+
+def change_time(data, name, time):
+    time_list = []
+    for item in data:
+        list_of_lists = (list(item.keys()))
+        for x in list_of_lists:
+            time_list.append(x)
+    time_index = time_list.index(name)
+    time_change = data[time_index][name][time]
+    if time_change == 1:
+        data[time_index][name][time] = 0
+
+
 def find_classroom_and_lecturer(Lecture_Hours, Lecturer_Expertise, Lecturer_Free, Classroom_Free):
     lecture = []
+    lecturer = []
+    classroom = []
+    # text_file = open("Timetable.txt", "w")
     for value in Lecture_Hours:
         time = list(value.values())[0][0]
         subject = list(value.keys())[0]
@@ -158,11 +171,31 @@ def find_classroom_and_lecturer(Lecture_Hours, Lecturer_Expertise, Lecturer_Free
                 free_lecturer = lecturer_available_time(Lecture_Hours, Lecturer_Expertise, Lecturer_Free, subject,
                                                         timeOfDay)
                 if len(free_classroom) > 0 and len(free_lecturer) > 0:
-                    lecture.append({subject: [timeOfDay, free_lecturer, free_classroom]})
+                    lecture_dict = {subject: [timeOfDay, free_lecturer[0], free_classroom[0]]}
+                    lecturer_dict = {free_lecturer[0]: [timeOfDay, subject, free_classroom[0]]}
+                    classroom_dict = {free_classroom[0]: [timeOfDay, free_lecturer[0], subject]}
+                    lecturer.append(lecturer_dict)
+                    lecture.append(lecture_dict)
+                    classroom.append(classroom_dict)
+                    change_time(Lecturer_Free, free_lecturer[0], timeOfDay)
+                    change_time(Classroom_Free, free_classroom[0], timeOfDay)
+                    """                    
+                    text_file.write(str(lecture_dict))
+                    text_file.write("\n")
+                    text_file.write(str(lecturer_dict))
+                    text_file.write("\n")
+                    text_file.write(str(classroom_dict))
+                    text_file.write("\n")
+                    """
                     timeOfDay += 1
                     time -= 1
                     if time == 0:
                         break
                 else:
                     timeOfDay += 1
-    return lecture
+    # text_file.close()
+    return lecture, lecturer, classroom
+
+
+def alpha_dict_list(data):
+    return sorted(data, key=lambda d: list(d.keys()))
