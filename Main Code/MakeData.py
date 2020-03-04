@@ -1,5 +1,7 @@
 from openpyxl import load_workbook
 import pandas as pd
+from operator import itemgetter
+from xlwt import Workbook
 
 
 def make_dict(workbook):
@@ -124,6 +126,7 @@ def lecturer_available_time(Lecture_Hours, Lecturer_Expertise, Lecturer_Free, su
                 lst.append(names)
     return lst
 
+
 def check_free_classroom(data, time):
     lst = []
     free_lst = []
@@ -137,10 +140,7 @@ def check_free_classroom(data, time):
         if list(data[classroom_index].values())[0][time - 1] == 1:
             free_lst.append(classroom)
         number += 1
-    if len(free_lst) > 0:
-        return free_lst
-    else:
-        return free_lst
+    return free_lst
 
 
 def change_time(data, name, time):
@@ -150,15 +150,11 @@ def change_time(data, name, time):
         for x in list_of_lists:
             time_list.append(x)
     time_index = time_list.index(name)
-    time_change = data[time_index][name][time]
-    if time_change == 1:
-        data[time_index][name][time] = 0
+    data[time_index][name][time] = 0
 
 
 def find_classroom_and_lecturer(Lecture_Hours, Lecturer_Expertise, Lecturer_Free, Classroom_Free):
     lecture = []
-    lecturer = []
-    classroom = []
     # text_file = open("Timetable.txt", "w")
     for value in Lecture_Hours:
         time = list(value.values())[0][0]
@@ -171,19 +167,11 @@ def find_classroom_and_lecturer(Lecture_Hours, Lecturer_Expertise, Lecturer_Free
                 free_lecturer = lecturer_available_time(Lecture_Hours, Lecturer_Expertise, Lecturer_Free, subject,
                                                         timeOfDay)
                 if len(free_classroom) > 0 and len(free_lecturer) > 0:
-                    lecture_dict = {subject: [timeOfDay, free_lecturer[0], free_classroom[0]]}
-                    lecturer_dict = {free_lecturer[0]: [timeOfDay, subject, free_classroom[0]]}
-                    classroom_dict = {free_classroom[0]: [timeOfDay, free_lecturer[0], subject]}
-                    lecturer.append(lecturer_dict)
-                    lecture.append(lecture_dict)
-                    classroom.append(classroom_dict)
+                    lecture.append([free_classroom[0], timeOfDay, subject, free_lecturer[0]])
                     change_time(Lecturer_Free, free_lecturer[0], timeOfDay)
                     change_time(Classroom_Free, free_classroom[0], timeOfDay)
+
                     """                    
-                    text_file.write(str(lecture_dict))
-                    text_file.write("\n")
-                    text_file.write(str(lecturer_dict))
-                    text_file.write("\n")
                     text_file.write(str(classroom_dict))
                     text_file.write("\n")
                     """
@@ -194,8 +182,44 @@ def find_classroom_and_lecturer(Lecture_Hours, Lecturer_Expertise, Lecturer_Free
                 else:
                     timeOfDay += 1
     # text_file.close()
-    return lecture, lecturer, classroom
+    return lecture
 
 
-def alpha_dict_list(data):
-    return sorted(data, key=lambda d: list(d.keys()))
+def alpha_dict_list(data, number):
+    return sorted(data, key=itemgetter(number))
+
+
+def make_simple_dict(data, number):
+    item_list = []
+    for part in data:
+        item_list.append(part[number])
+        item_list = list(dict.fromkeys(item_list))
+    the_dict = ({y: x for x, y in enumerate(item_list, 1)})
+    return the_dict
+
+
+def make_excel(data, Lecturer_Free):
+    wb = Workbook()
+    sheet1 = wb.add_sheet('Lecturers', cell_overwrite_ok=True)
+    sheet2 = wb.add_sheet("Classrooms", cell_overwrite_ok=True)
+    class_dict = make_simple_dict(data, 0)
+    lecturer_dict = make_simple_dict(data, 3)
+    time = Lecturer_Free[0]
+    for items in time:
+        sheet1.write(0, 0, items)
+        sheet2.write(0, 0, items)
+        for hours in time[items]:
+            sheet1.write(hours, 0, hours)
+            sheet2.write(hours, 0, hours)
+    for item in lecturer_dict:
+        sheet1.write(0, lecturer_dict[item], item)
+    for item in class_dict:
+        sheet2.write(0, class_dict[item], item)
+    for items in data:
+        classroom = lecturer_dict[items[3]]
+        time = items[1] + 1
+        lecture = items[2]
+        sheet1.write(time, classroom, lecture)
+        classroom = class_dict[items[0]]
+        sheet2.write(time, classroom, lecture)
+    wb.save("Timetable.xls")  # Save file as an excel sheet
