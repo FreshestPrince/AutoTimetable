@@ -2,6 +2,8 @@ from openpyxl import load_workbook
 import pandas as pd
 from operator import itemgetter
 from xlwt import Workbook
+import random
+from random import randrange
 
 
 def make_dict(workbook):
@@ -29,32 +31,57 @@ def make_dict(workbook):
     return new_list
 
 
-def duplicates(lst, item):
+def zeros(Lecturer_Free, name):
+    name_lst = []
+    for item in Lecturer_Free:
+        list_of_lists = (list(item.keys()))
+        for x in list_of_lists:
+            name_lst.append(x)
+    lecturer_index = name_lst.index(name)
+    lst = Lecturer_Free[lecturer_index]
     lst = (list(lst.values())[0])
-    return [i for i, x in enumerate(lst) if x == item]
+    zeros = len([i for i, x in enumerate(lst) if x == 0])
+    return zeros
 
 
-def lecturer_subject(data, subject):
-    lst = (list(data[0].values())[0].index(subject))
+def lecturer_subject(Lecturer_Expertise, subject):
+    lst = (list(Lecturer_Expertise[0].values())[0].index(subject))
     lecturer = []
-    for info in data:
+    for info in Lecturer_Expertise:
         for name in info:
             if (list(info.values())[0][lst]) == 1:
                 lecturer.append(name)
     return lecturer
 
-
-def lecturer_free(data, name, time):
-    lst = []
+def lunchtime(Lecturer_Free):
+    data = Lecturer_Free[1:]
     for item in data:
-        for key in item.keys():
-            lst.append(key)
-    no = lst.index(name)
-    free = list(data[no].values())[0][time]
-    if free == 1:
-        return True
+        name = [*item][0]
+        n = 3
+        while n < 65:
+            n_rand = randrange(0, 3)
+            n = n + n_rand
+            item[name][n] = 0
+            n += 13
+    return Lecturer_Free
+
+def lecturer_free(Lecturer_Free, Lecturer_Expertise, name, time):
+
+    lecturer_hours = zeros(Lecturer_Free, name)
+    if lecturer_hours > 18:
+        del_lecturer(Lecturer_Free, name)
+        del_lecturer(Lecturer_Expertise, name)
     else:
-        return False
+        lst = []
+        for item in Lecturer_Free:
+            for key in item.keys():
+                lst.append(key)
+        no = lst.index(name)
+        free = list(Lecturer_Free[no].values())[0][time]
+        if free == 1:
+            return True
+        else:
+            return False
 
 
 def class_free(data, time):
@@ -122,7 +149,7 @@ def lecturer_available_time(Lecture_Hours, Lecturer_Expertise, Lecturer_Free, su
     lst = []
     if hours > 0:
         for names in (lecturer_subject(Lecturer_Expertise, subject)):
-            if lecturer_free(Lecturer_Free, names, time) == True:
+            if lecturer_free(Lecturer_Free, Lecturer_Expertise, names, time) == True:
                 lst.append(names)
     return lst
 
@@ -153,9 +180,28 @@ def change_time(data, name, time):
     data[time_index][name][time] = 0
 
 
+def lecturer_index(Lecturer_Free, name):
+    name_lst = []
+    for item in Lecturer_Free:
+        list_of_lists = (list(item.keys()))
+        for x in list_of_lists:
+            name_lst.append(x)
+    lecturer_index = name_lst.index(name)
+    return lecturer_index
+
+
+def del_lecturer(Lecturer_Free, name):
+    name_lst = []
+    for item in Lecturer_Free:
+        list_of_lists = (list(item.keys()))
+        for x in list_of_lists:
+            name_lst.append(x)
+    lecturer_index = name_lst.index(name)
+    del Lecturer_Free[lecturer_index]
+
+
 def find_classroom_and_lecturer(Lecture_Hours, Lecturer_Expertise, Lecturer_Free, Classroom_Free):
     lecture = []
-    # text_file = open("Timetable.txt", "w")
     for value in Lecture_Hours:
         time = list(value.values())[0][0]
         subject = list(value.keys())[0]
@@ -163,25 +209,27 @@ def find_classroom_and_lecturer(Lecture_Hours, Lecturer_Expertise, Lecturer_Free
             timeOfDay = 0
             number_of_hours = list(Classroom_Free[0].values())[0]
             while timeOfDay < len(number_of_hours):
+
                 free_classroom = check_free_classroom(Classroom_Free, timeOfDay)
                 free_lecturer = lecturer_available_time(Lecture_Hours, Lecturer_Expertise, Lecturer_Free, subject,
                                                         timeOfDay)
                 if len(free_classroom) > 0 and len(free_lecturer) > 0:
-                    lecture.append([free_classroom[0], timeOfDay, subject, free_lecturer[0]])
-                    change_time(Lecturer_Free, free_lecturer[0], timeOfDay)
-                    change_time(Classroom_Free, free_classroom[0], timeOfDay)
-
-                    """                    
-                    text_file.write(str(classroom_dict))
-                    text_file.write("\n")
-                    """
+                    lecturer_name = free_lecturer[random.randrange(0, len(free_lecturer))]
+                    classroom_name = free_classroom[random.randrange(0, len(free_classroom))]
+                    #lecturer_name = free_lecturer[0]
+                    #classroom_name = free_classroom[0]
+                    lecture.append([classroom_name, timeOfDay, subject,
+                                    lecturer_name])
+                    print(len(lecture))
+                    change_time(Lecturer_Free, lecturer_name, timeOfDay)
+                    change_time(Classroom_Free, classroom_name, timeOfDay)
                     timeOfDay += 1
                     time -= 1
                     if time == 0:
                         break
+                    break
                 else:
                     timeOfDay += 1
-    # text_file.close()
     return lecture
 
 

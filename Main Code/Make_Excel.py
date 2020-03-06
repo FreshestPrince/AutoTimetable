@@ -360,6 +360,3 @@ data = [['Classroom A', 0, 'Analogue Electronics', 'Kristle Benshoof \xa0'],
         ['Classroom A', 52, 'Software Development', 'Nancy Riess \xa0'],
         ['Classroom B', 53, 'Software Development', 'Tyesha Gong \xa0'],
         ['Classroom C', 54, 'Software Development', 'Nancy Riess \xa0']]
-
-
-
