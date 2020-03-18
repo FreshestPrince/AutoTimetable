@@ -57,7 +57,7 @@ def Timetable():
                 time = TimeLimitA
                 sheet1.write(time - TimeLimitA, day, Array[Number])
             elif Number == len(Array):
-                time == TimeLimitB # Place a limit on
+                time = TimeLimitB # Place a limit on
                 break
             elif day == 6:
                 break
