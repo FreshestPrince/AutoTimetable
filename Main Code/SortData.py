@@ -21,7 +21,7 @@ for subject in Subject_Names:
     for i in range((Lecture_Hours[subject][0])):
         lectures.append(subject)
 
-timetable(lectures, Lecturer_Subjects, Lecturer_Free, Classroom_Free, Classrooms, Lecture_Times, Lecturer_Expertise)
+
 
 """
 Courses = list(Course_Lectures.keys())[1:]

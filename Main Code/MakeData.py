@@ -56,7 +56,7 @@ def time_translate(number):
         return ("Wednesday", time_normal(number))
     elif 52 > number:
         return ("Thursday", time_normal(number))
-    elif 64 > number:
+    elif 65 > number:
         return ("Friday", time_normal(number))
     else:
         print("Value is not within proper range")
@@ -141,7 +141,7 @@ def timetable(lectures, Lecturer_Subjects, Lecturer_Free, Classroom_Free, Classr
             if len(classrooms) > 0 and len(lecturers) > 0:
                 lecturer = choice(lecturers)
                 classroom = choice(classrooms)
-                lst.append([time_translate(time)[0], time_translate(time)[1], classroom, lecturer, lecture])
+                lst.append([time, time_translate(time)[0], time_translate(time)[1], classroom, lecturer, lecture])
                 make_zero(Lecture_Times, lecture, time)
                 make_zero(Lecturer_Free, lecturer, time)
                 make_zero(Classroom_Free, classroom, time)
@@ -149,5 +149,6 @@ def timetable(lectures, Lecturer_Subjects, Lecturer_Free, Classroom_Free, Classr
                 break
             time += 1
     df = pd.DataFrame.from_records(lst)
-    df.columns = ["Day", "Time", "Classroom", "Lecturer", "Lecture"]
+    df.columns = ["Number", "Day", "Time", "Classroom", "Lecturer", "Lecture"]
     df.to_excel("Timetable.xlsx")
+    return df
