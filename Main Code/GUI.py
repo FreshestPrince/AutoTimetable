@@ -1,6 +1,5 @@
 from tkinter import *
 from SortData import *
-import pandas as pd
 
 root = Tk()
 
@@ -28,7 +27,6 @@ for x in range(5):
             index += 1
         else:
             text = ["Free"]
-        print(text)
         btn = Label(frame, text=((time_translate(time)[0], str(time_translate(time)[1])), "\n", text[0]))
         btn.config(font=("Courier", 15))
         btn.grid(column=x, row=y, sticky=N + S + E + W)
