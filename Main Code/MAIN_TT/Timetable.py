@@ -2,6 +2,7 @@ from itertools import chain
 import random
 import time
 import pandas as pd
+import datetime
 
 
 class timetable():
@@ -51,27 +52,30 @@ class timetable():
     def Course_Subject(self, cfSubject_Courses):
         Course_Subjects_Sem1 = {}
         Course_Subjects = self.make_dict(self.courses, cfSubject_Courses)
+        no_of_subjects = 6
         for course in list(Course_Subjects.keys()):
-            if len(Course_Subjects[course]) > 6:
-                lectures_list = random.sample(Course_Subjects[course], 6)
+            if (len(Course_Subjects[course]) // 2 )> no_of_subjects:
+                lectures_list = random.sample(Course_Subjects[course], no_of_subjects)
                 Course_Subjects_Sem1.update({course: lectures_list})
             else:
-                lectures_list = Course_Subjects[course]
+                lectures_list = random.sample(Course_Subjects[course], len(Course_Subjects[course]) // 2)
                 Course_Subjects_Sem1.update({course: lectures_list})
         self.lectures_sem_1 = list(chain.from_iterable((list(Course_Subjects_Sem1.values()))))
         return self.lectures_sem_1, Course_Subjects
 
     def create_lectures(self, cslectures_sem_1, cfSubject_Courses):
         Subject_Hours = {}
+        self.Subject_Length = self.make_list(self.data_dict, "Event Id", "Length")
         for subject in list(cfSubject_Courses.keys()):
-            Subject_Hours.update({subject: 1})
-            # Subject_Hours.update({subject:Subject_Length[subject]/12})
+            #Subject_Hours.update({subject: 1})
+            Subject_Hours.update({subject: self.Subject_Length[subject] // 24})
         for keys in list(cfSubject_Courses.keys()):
             if keys in cslectures_sem_1:
                 word = str(keys)
                 word = ((word,) * (Subject_Hours[keys]))
                 self.lectures.append(word)
         self.lectures = list(map(int, list(chain.from_iterable(self.lectures))))
+        print(len(self.lectures))
         return self.lectures
 
     def make_rooms(self, lst):
@@ -82,9 +86,10 @@ class timetable():
         return room_size, room_names
 
     def make_all_rooms(self):
-        labs = (self.rooms.loc[self.rooms['Type'] == "Flat"]).to_dict("list")
-        rooms = (self.rooms.loc[self.rooms['Type'] == "Classroom"]).to_dict("list")
+        # labs = (self.rooms.loc[self.rooms['Type'] == "Flat"]).to_dict("list")
+
         # Lab_Size, lab_names = self.make_rooms(labs)
+        rooms = (self.rooms.loc[self.rooms['Type'] == "Classroom"]).to_dict("list")
         self.Classroom_Size, room_names_result = self.make_rooms(rooms)
         # self.all_rooms = lab_names + room_names_result
         return self.Classroom_Size  # , self.all_rooms
@@ -112,7 +117,6 @@ class timetable():
     def make_data(self):
         self.ID_Subject = self.make_list(self.data_dict, "Event Id", "Mod")
         """
-        self.Subject_Length = self.make_list(self.data_dict, "Event Id", "Length")
         for subject in list(self.Subject_Length.keys()):
             self.Subject_Size.update({subject: 1})
         """
@@ -180,7 +184,6 @@ class timetable():
     def getInitialPopulation(self, cslectures_sem_1, marClassroom_Size, cslecture_classrooms, cssubject_size,
                              mdID_Subject, cfSubject_Courses, lfLecturer_Subjects):
         for pop in range(self.population):
-            i = 0
             for lecture in cslectures_sem_1:
                 classroom = random.choice(cslecture_classrooms[lecture])
                 courses = cfSubject_Courses[lecture]
@@ -190,7 +193,6 @@ class timetable():
                 self.classes.append(
                     [time, classroom, self.pick_lecturer(lecture, lfLecturer_Subjects), lecture, courses, subject_sizes,
                      room_size, mdID_Subject[lecture]])
-                i += 1
         return self.classes
 
     def call_all(self):
@@ -198,7 +200,6 @@ class timetable():
         cfCourse_Size, cfSubject_Courses, cfcourses = self.courses_func()
         cslectures_sem_1, Course_Subjects = self.Course_Subject(cfSubject_Courses)
         cllectures = self.create_lectures(cslectures_sem_1, cfSubject_Courses)
-
         mdID_Subject = self.make_data()
         lfLecturer_Subjects = self.lecturers_function()
         cslecture_classrooms, cssubject_size = self.classroom_sizes(cfCourse_Size, cfSubject_Courses, marClassroom_Size,
@@ -207,6 +208,18 @@ class timetable():
                                                 cssubject_size, mdID_Subject, cfSubject_Courses, lfLecturer_Subjects)
         return self.result, lfLecturer_Subjects, cslecture_classrooms, list(lfLecturer_Subjects.keys()), list(
             marClassroom_Size.keys()), cllectures, Course_Subjects
+
+    def lecture_classrooms_function(self, cslecture_classrooms):
+        new_lst = []
+        for lecture in list(cslecture_classrooms.keys()):
+            lst = []
+            lst.append(lecture)
+            for item in cslecture_classrooms[lecture]:
+                lst.append(item)
+            new_lst.append(lst)
+        df = pd.DataFrame(new_lst).T
+        print("saving data")
+        df.to_excel("lecture_classrooms.xlsx")
 
 
 class algorithm():
@@ -268,14 +281,19 @@ class algorithm():
         lst = clashes
         newFit = fitness
         print(newFit)
-        start = time.time()
+        # start = time.time()
         while newFit <= fitness:
             for indices in lst:
                 index = random.choice(indices)
+                hour_original = chromosome[index][0]
+                room_original = chromosome[index][1]
+                lecturer_original = chromosome[index][2]
                 lecture = chromosome[index][3]
                 room, lecturer, hour = self.pick_classroom_lecturer(lecture, classroom_free, lecturer_free,
                                                                     Lecturer_Subjects, lecturer_hours,
                                                                     lecture_classrooms)
+                lecturer_free[lecturer_original].append(hour_original)
+                classroom_free[room_original].append(hour_original)
                 chromosome[index][0] = hour
                 chromosome[index][1] = room
                 chromosome[index][2] = lecturer
@@ -283,8 +301,8 @@ class algorithm():
                 print(newFit)
                 if newFit <= fitness:
                     continue
-            end = time.time()
-            print(end - start)
+            # end = time.time()
+            # print(end - start)
             newFit = self.calc_fitness(chromosome)[0]
             print(newFit)
             if newFit < 0:
@@ -381,35 +399,11 @@ class algorithm():
         return timetable, classroom_free, lecturer_free
 
 
-def make_df(dictionary):
-    new_list = []
-    for key in list(dictionary.keys()):
-        new_list.append((list(chain.from_iterable([[key], dictionary[key]]))))
-    df = pd.DataFrame(new_list).T
-    df.columns = df.iloc[0]
-    df.drop(df.index[[0]], inplace=True)
-    return df
-
-
-def make_excel(classroom_free, lecturer_free, Course_Subjects, cllectures):
-    dfclassroom_free = make_df(classroom_free)
-    dflecturer_free = make_df(lecturer_free)
-    dfCourse_Subjects = make_df(Course_Subjects)
-    dfcllectures = pd.DataFrame(cllectures).T
-    path = r"data.xlsx"
-    writer = pd.ExcelWriter(path, engine='xlsxwriter')
-    dfclassroom_free.to_excel(writer, sheet_name='classroom_free')
-    dflecturer_free.to_excel(writer, sheet_name='lecturer_free')
-    dfCourse_Subjects.to_excel(writer, sheet_name='Course_Subjects')
-    dfcllectures.to_excel(writer, sheet_name='lectures')
-    writer.save()
-    writer.close()
-
-
 if __name__ == "__main__":
+
     t0 = time.time()
-    labs = "SEEE Labs 2019-20.xlsx"
-    main_data = "Timetabling EB03 Data Sample 201920.xlsx"
+    labs = "/SEEE Labs 2019-20.xlsx"
+    main_data = "/Timetabling EB03 Data Sample 201920.xlsx"
     data = pd.read_excel(main_data, "Sheet1")
     rooms = pd.read_excel(labs, "Sheet1")
     data_dict = data.to_dict("list")
@@ -418,19 +412,19 @@ if __name__ == "__main__":
     hours_in_day = 13
     timetables = timetable(lecturer_hours, population, data_dict, rooms)
     result, lfLecturer_Subjects, cslecture_classrooms, lecturers, rooms, cllectures, Course_Subjects = timetables.call_all()
-
     data = algorithm(result)
     classroom_free = data.classrooms_free(rooms)
     lecturer_free = data.lecturers_free(lecturers)
     timetable, classroom_free, lecturer_free = data.halves(classroom_free, lecturer_free, lecturer_hours,
                                                            lfLecturer_Subjects, cslecture_classrooms)
+    timetables.lecture_classrooms_function(cslecture_classrooms)
+    result,a,b = data.mutate(timetable, classroom_free, lecturer_free,
+                         lecturer_hours, lfLecturer_Subjects, cslecture_classrooms)
 
-    result = data.mutate(timetable, classroom_free, lecturer_free,
-                         lecturer_hours, lfLecturer_Subjects, cslecture_classrooms)[0]
     column_names = ["Time", "Room", "Lecturer", "Lecture_ID", "Course(s)", "StudentsNo", "Room Size", "Lecture"]
     df = pd.DataFrame(result)
     df.columns = column_names
-    df.to_excel("timetable.xlsx")
-    make_excel(classroom_free, lecturer_free, Course_Subjects, cllectures)
+    df.to_excel("/timetable.xlsx")
     t1 = time.time()
     total = t1 - t0
+    print(str(datetime.timedelta(seconds=total)))
